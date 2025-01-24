@@ -1,0 +1,13 @@
+server:
+  port: 8000
+url_shortener:
+  base_url: http://localhost:8000
+cache:
+  host: localhost
+  port: 6380
+  password: 123456
+  db: 0
+  ttl: 259200
+  dial_timeout: 15
+  read_timeout: 15
+  write_timeout: 15
