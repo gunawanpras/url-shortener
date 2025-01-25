@@ -2,25 +2,23 @@ package url_shortener
 
 import (
 	"context"
-	"crypto/rand"
-	"encoding/base64"
 	"encoding/json"
 	"net/http"
-	"strings"
 	"sync"
 	"time"
 
 	"github.com/gunawanpras/url-shortener/cache"
 	"github.com/gunawanpras/url-shortener/config"
+	"github.com/gunawanpras/url-shortener/helper"
 )
 
 type URLService struct {
-	store  cache.CacheImpl
+	store  cache.ICache
 	mutex  sync.Mutex
 	config config.Config
 }
 
-func New(config config.Config, rCache cache.CacheImpl) *URLService {
+func New(config config.Config, rCache cache.ICache) *URLService {
 
 	return &URLService{
 		store:  rCache,
@@ -32,6 +30,7 @@ func (us *URLService) ShortenHandler(w http.ResponseWriter, r *http.Request) {
 	var request struct {
 		URL string `json:"url"`
 	}
+
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 		http.Error(w, "Invalid request", http.StatusBadRequest)
 		return
@@ -47,7 +46,6 @@ func (us *URLService) ShortenHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := context.Background()
 	err = us.store.SetValue(ctx, shortCode, request.URL, time.Duration(us.config.Cache.Ttl)*time.Minute)
 	if err != nil {
-		println("error", err.Error())
 		http.Error(w, "Internal error", http.StatusInternalServerError)
 		return
 	}
@@ -73,20 +71,11 @@ func (us *URLService) RedirectHandler(w http.ResponseWriter, r *http.Request) {
 
 func (us *URLService) Handler() http.Handler {
 	mux := http.NewServeMux()
-	mux.HandleFunc("/s", us.ShortenHandler)
-	mux.HandleFunc("/s/", us.RedirectHandler)
+	mux.Handle("/s", helper.Request{Method: http.MethodPost, Handler: http.HandlerFunc(us.ShortenHandler)})
+	mux.Handle("/s/", helper.Request{Method: http.MethodGet, Handler: http.HandlerFunc(us.RedirectHandler)})
 	return mux
 }
 
 func (us *URLService) generateShortCode() (string, error) {
-	return us.getRandomString(7)
-}
-
-func (us *URLService) getRandomString(length int) (string, error) {
-	b := make([]byte, length)
-	_, err := rand.Read(b)
-	if err != nil {
-		return "", err
-	}
-	return strings.TrimRight(base64.URLEncoding.EncodeToString(b), "="), nil
+	return helper.GetRandomString(7)
 }

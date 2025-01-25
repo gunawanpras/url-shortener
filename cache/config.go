@@ -2,7 +2,7 @@ package cache
 
 import "github.com/go-redis/cache/v8"
 
-type Config struct {
+type CacheConfig struct {
 	Host         string `yaml:"host"`
 	Port         int    `yaml:"port"`
 	Password     string `yaml:"password"`

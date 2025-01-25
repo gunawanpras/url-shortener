@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/go-redis/cache/v8"
+	rCache "github.com/go-redis/cache/v8"
 	"github.com/go-redis/redis/v8"
 )
 
-func LoadRedisCache(config Config) (redisCache Cache, err error) {
+func NewRedisCacheClient(config CacheConfig) (redisCache Cache, err error) {
 	client := redis.NewClient(&redis.Options{
 		Addr:         fmt.Sprintf("%s:%d", config.Host, config.Port),
 		DialTimeout:  time.Duration(config.DialTimeout) * time.Second,
@@ -16,9 +16,9 @@ func LoadRedisCache(config Config) (redisCache Cache, err error) {
 		WriteTimeout: time.Duration(config.WriteTimeout) * time.Second,
 	})
 
-	c := cache.New(&cache.Options{
+	c := rCache.New(&rCache.Options{
 		Redis:      client,
-		LocalCache: cache.NewTinyLFU(1000, time.Minute),
+		LocalCache: rCache.NewTinyLFU(1000, time.Minute),
 	})
 
 	redisCache = Cache{
