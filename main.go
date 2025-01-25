@@ -13,15 +13,10 @@ func main() {
 	conf := config.LoadConfig("./config/config.yaml")
 	log.Println("Load configuration...")
 
-	redisCache, err := cache.LoadRedisCache(conf.Cache)
-	if err != nil {
-		log.Panic(err)
-	}
-
-	cacheImpl := cache.New(&redisCache)
+	redisCache := cache.NewRedisCache(conf.Cache)
 	log.Println("Starting Redis Cache on port:", conf.Cache.Port)
 
-	urlService := url_shortener.New(conf, cacheImpl)
+	urlService := url_shortener.New(conf, redisCache)
 
 	mux := urlService.Handler()
 	http.Handle("/", mux)

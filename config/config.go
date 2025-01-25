@@ -18,9 +18,9 @@ type (
 	}
 
 	Config struct {
-		Server       Server       `yaml:"server"`
-		URLShortener URLShortener `yaml:"url_shortener"`
-		Cache        cache.Config `yaml:"cache"`
+		Server       Server            `yaml:"server"`
+		URLShortener URLShortener      `yaml:"url_shortener"`
+		Cache        cache.CacheConfig `yaml:"cache"`
 	}
 )
 
